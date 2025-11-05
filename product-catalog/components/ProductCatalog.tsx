@@ -9,10 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '../components/ui/dialog';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,9 +22,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { api } from '@/lib/api';
-import { Product, ToastMessage } from '@/lib/types';
+} from '../components/ui/alert-dialog';
+import { api } from '../lib/api';
+import { Product, ToastMessage } from '../lib/types';
 
 // Toast Component
 interface ToastProps {
