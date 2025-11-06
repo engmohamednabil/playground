@@ -1,6 +1,6 @@
 import { Product } from './types';
 
-const API_BASE_URL = 'http://localhost:5153/products';
+const API_BASE_URL = process.env.BACKEND_API_BASE_URL || 'http://localhost:5153/products';
 
 export const api = {
   getProducts: async (): Promise<Product[]> => {
