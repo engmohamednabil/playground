@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Pencil, Trash2, Plus, X } from 'lucide-react';
 import {
   Dialog,
@@ -113,7 +113,7 @@ function ProductForm({ product, onSubmit, onCancel, existingIds }: ProductFormPr
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="desc">Description</Label>
+        <Label htmlFor="desc">Product Name</Label>
         <Input
           id="desc"
           value={formData.desc}
@@ -185,7 +185,7 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
     <div>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter all columns..."
+          placeholder="Search Products"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-sm"
@@ -197,16 +197,16 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                ID
+                Product Id
               </th>
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Description
-              </th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Price
+                Product Name
               </th>
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                 Brand
+              </th>
+              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                Price
               </th>
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                 Actions
@@ -225,10 +225,10 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 <tr key={product.id} className="border-b hover:bg-muted/50">
                   <td className="p-4 align-middle font-medium">{product.id}</td>
                   <td className="p-4 align-middle">{product.desc}</td>
-                  <td className="p-4 align-middle">
-                    ${product.price.toFixed(2)}
-                  </td>
                   <td className="p-4 align-middle">{product.brand}</td>
+                  <td className="p-4 align-middle">
+                    {product.price.toFixed(0)} EUR
+                  </td>
                   <td className="p-4 align-middle">
                     <div className="flex gap-2">
                       <Button
