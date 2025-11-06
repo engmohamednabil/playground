@@ -24,35 +24,9 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { api } from '../lib/api';
-import { Product, ToastMessage } from '../lib/types';
+import { Product } from '../lib/types';
+import toast from "react-hot-toast";
 
-// Toast Component
-interface ToastProps {
-  message: string;
-  type: 'success' | 'error';
-  onClose: () => void;
-}
-
-function Toast({ message, type, onClose }: ToastProps) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div className={`fixed bottom-4 right-4 px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 z-50 min-w-[300px] ${
-      type === 'error' ? 'bg-red-600' : 'bg-green-600'
-    } text-white`}>
-      <div className="flex-1">
-        <p className="font-semibold">{type === 'error' ? 'Error' : 'Success'}</p>
-        <p className="text-sm">{message}</p>
-      </div>
-      <button onClick={onClose} className="hover:bg-white/20 rounded p-1">
-        <X className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
 
 // Product Form Component
 interface ProductFormProps {
@@ -264,7 +238,6 @@ export default function ProductCatalog() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -276,14 +249,10 @@ export default function ProductCatalog() {
       const data = await api.getProducts();
       setProducts(data);
     } catch (error) {
-      showToast('Failed to fetch products', 'error');
+      toast.error('Failed to fetch products')
     } finally {
       setLoading(false);
     }
-  };
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ message, type });
   };
 
   const handleAdd = async (formData: Product) => {
@@ -293,9 +262,9 @@ export default function ProductCatalog() {
       // Refresh data from API after successful add
       await fetchProducts();
       setIsAddDialogOpen(false);
-      showToast('Product added successfully');
+      toast.success("Product added successfully");
     } catch (error) {
-      showToast('Failed to add product', 'error');
+      toast.error('Failed to add product');
     }
   };
 
@@ -306,9 +275,9 @@ export default function ProductCatalog() {
       // Refresh data from API after successful update
       await fetchProducts();
       setEditingProduct(null);
-      showToast('Product updated successfully');
+      toast.success('Product updated successfully');
     } catch (error) {
-      showToast('Failed to update product', 'error');
+      toast.error('Failed to update product');
     }
   };
 
@@ -321,9 +290,9 @@ export default function ProductCatalog() {
       // Refresh data from API after successful delete
       await fetchProducts();
       setDeleteProductId(null);
-      showToast('Product deleted successfully');
+      toast.success('Product deleted successfully');
     } catch (error) {
-      showToast('Failed to delete product', 'error');
+      toast.error('Failed to delete product');
     }
   };
 
@@ -401,15 +370,6 @@ export default function ProductCatalog() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Toast */}
-      {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type}
-          onClose={() => setToast(null)} 
-        />
-      )}
     </div>
   );
 }
