@@ -336,7 +336,7 @@ export default function ProductCatalog() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Product Management</h1>
+        <h1 className="text-3xl font-bold">Product Catalog</h1>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Product

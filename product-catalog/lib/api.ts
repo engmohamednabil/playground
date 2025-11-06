@@ -81,7 +81,7 @@ export const api = {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Some APIs return 204 No Content for DELETE
+      // Handle API return 204 No Content for DELETE
       if (response.status === 204) {
         return { success: true };
       }
