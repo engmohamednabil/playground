@@ -13,12 +13,6 @@ jest.mock('../lib/api', () => ({
   }
 }));
 
-// Mock toast
-// const mockToast = jest.fn();
-// jest.mock('@/components/ui/use-toast', () => ({
-//   useToast: () => ({ toast: mockToast }),
-// }));
-
 const mockProducts = [
   { id: 'P001', desc: 'Wireless Mouse', price: 29.99, brand: 'Logitech' },
   { id: 'P002', desc: 'Mechanical Keyboard', price: 89.99, brand: 'Corsair' },
@@ -45,6 +39,75 @@ describe('ProductCatalog Component', () => {
   });
 
 });
+
+test('should filter products by brand using global search', async () => {
+    const { api } = require('../lib/api');
+    api.getProducts.mockResolvedValue(mockProducts);
+
+    render(<ProductCatalog />);
+
+     await waitFor(() => {
+      expect(screen.getByText('Wireless Mouse')).toBeInTheDocument();
+    });
+
+    const filterInput = screen.getByPlaceholderText('Search Products');
+    fireEvent.change(filterInput, { target: { value: 'Anker' } });
+
+    await waitFor(() => {
+      expect(screen.queryByText('USB-C Hub')).toBeInTheDocument();
+    });
+  });
+
+  test('should show delete confirmation dialog', async () => {
+      const { api } = require('../lib/api');
+      api.getProducts.mockResolvedValue(mockProducts);
+  
+      render(<ProductCatalog />);
+  
+      await waitFor(() => {
+        expect(screen.getByText('Wireless Mouse')).toBeInTheDocument();
+      });
+  
+      const deleteButtons = screen.getAllByRole('button');
+      const deleteButton = deleteButtons.find(btn => 
+        btn.querySelector('svg')?.classList.contains('lucide-trash-2')
+      );
+      fireEvent.click(deleteButton);
+  
+      await waitFor(() => {
+        expect(screen.getByText('Are you sure?')).toBeInTheDocument();
+      });
+    });
+
+test('should delete product after confirmation and show toast', async () => {
+    const { api } = require('../lib/api');
+    api.getProducts.mockResolvedValueOnce(mockProducts)
+                   .mockResolvedValueOnce(mockProducts.slice(1));
+    api.deleteProduct.mockResolvedValue({ success: true });
+
+    render(<ProductCatalog />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Wireless Mouse')).toBeInTheDocument();
+    });
+
+    const deleteButtons = screen.getAllByRole('button');
+    const deleteButton = deleteButtons.find(btn => 
+      btn.querySelector('svg')?.classList.contains('lucide-trash-2')
+    );
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Are you sure?')).toBeInTheDocument();
+    });
+
+    const confirmButton = screen.getByRole('button', { name: /^Delete$/i });
+    fireEvent.click(confirmButton);
+
+    await waitFor(() => {
+      expect(api.deleteProduct).toHaveBeenCalledWith('P001');
+    });
+  });
 
 // Package.json dependencies for the project:
 /*

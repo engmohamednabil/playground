@@ -64,7 +64,7 @@ interface ProductFormProps {
 
 function ProductForm({ product, onSubmit, onCancel, existingIds }: ProductFormProps) {
   const [formData, setFormData] = useState<Product>(
-    product || { id: '', desc: '', price: 0, brand: '' }
+    product || { id: '', desc: '', price: 0, brand: '', stock: 0 }
   );
   const [errors, setErrors] = useState<Partial<Record<keyof Product, string>>>({});
 
@@ -96,7 +96,7 @@ function ProductForm({ product, onSubmit, onCancel, existingIds }: ProductFormPr
     }
   };
 
-  const isFormValid = formData.id && formData.desc && formData.price > 0 && formData.brand;
+  const isFormValid = formData.id && formData.desc && formData.price > 0 && formData.brand && formData.stock > -1;
 
   return (
     <div className="grid gap-4 py-4">

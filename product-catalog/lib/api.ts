@@ -1,37 +1,96 @@
 import { Product } from './types';
 
-// Mock API
-const mockProducts: Product[] = [
-  { id: 'P001', desc: 'Wireless Mouse', price: 29.99, brand: 'Logitech' },
-  { id: 'P002', desc: 'Mechanical Keyboard', price: 89.99, brand: 'Corsair' },
-  { id: 'P003', desc: 'USB-C Hub', price: 45.50, brand: 'Anker' },
-  { id: 'P004', desc: 'Laptop Stand', price: 35.00, brand: 'Rain Design' },
-  { id: 'P005', desc: 'Webcam HD', price: 69.99, brand: 'Logitech' },
-  { id: 'P006', desc: 'Monitor 27 inch', price: 299.99, brand: 'Dell' },
-  { id: 'P007', desc: 'USB Mouse Pad', price: 15.99, brand: 'Corsair' },
-  { id: 'P008', desc: 'Headphones', price: 149.99, brand: 'Sony' },
-];
+const API_BASE_URL = 'http://localhost:5153/products';
 
 export const api = {
   getProducts: async (): Promise<Product[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return [...mockProducts];
+    try {
+      const response = await fetch(API_BASE_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      throw error;
+    }
   },
+
   addProduct: async (product: Product): Promise<Product> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    mockProducts.push(product);
-    return product;
+    try {
+      const response = await fetch(API_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error adding product:', error);
+      throw error;
+    }
   },
+
   updateProduct: async (id: string, product: Product): Promise<Product> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const index = mockProducts.findIndex(p => p.id === id);
-    if (index !== -1) mockProducts[index] = product;
-    return product;
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
   },
+
   deleteProduct: async (id: string): Promise<{ success: boolean }> => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const index = mockProducts.findIndex(p => p.id === id);
-    if (index !== -1) mockProducts.splice(index, 1);
-    return { success: true };
+    try {
+      const response = await fetch(`${API_BASE_URL}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Some APIs return 204 No Content for DELETE
+      if (response.status === 204) {
+        return { success: true };
+      }
+
+      const data = await response.json();
+      return data.success !== undefined ? data : { success: true };
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
   }
 };

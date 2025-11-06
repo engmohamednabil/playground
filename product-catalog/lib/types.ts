@@ -3,6 +3,7 @@ export interface Product {
   desc: string;
   price: number;
   brand: string;
+  stock: number;
 }
 
 export interface ToastMessage {
