@@ -10,3 +10,21 @@ export interface ToastMessage {
   message: string;
   type: 'success' | 'error';
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+}
+
+export interface ChatRequest {
+  productId: string;
+  message: string;
+  description?: string;
+  brand?: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  productId: string;
+}

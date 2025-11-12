@@ -26,7 +26,7 @@ import {
 import { api } from '../lib/api';
 import { Product } from '../lib/types';
 import toast from "react-hot-toast";
-
+import Link from 'next/link';
 
 // Product Form Component
 interface ProductFormProps {
@@ -205,6 +205,10 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                   </td>
                   <td className="p-4 align-middle">
                     <div className="flex gap-2">
+                      <Link href={`/chat?id=${product.id}&description=${encodeURIComponent(product.desc)}&brand=${encodeURIComponent(product.brand)}`}
+                        className="inline-flex items-center px-3 py-1.5 bg-accent-600 text-black text-sm font-medium rounded hover:bg-blue-50 transition-colors"                    >
+                        🤖 Ask AI
+                      </Link>
                       <Button
                         variant="ghost"
                         size="sm"
