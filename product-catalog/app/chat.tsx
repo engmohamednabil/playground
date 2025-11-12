@@ -4,6 +4,17 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '../lib/api';
 import { ChatMessage } from '../lib/types';
+import toast from "react-hot-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 
 function ChatContent() {
   const searchParams = useSearchParams();
@@ -14,6 +25,7 @@ function ChatContent() {
   const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitialMessageSentRef = useRef(false);
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
 
   const productId = searchParams.get('id') || '';
   const description = searchParams.get('description') || '';
@@ -34,7 +46,7 @@ function ChatContent() {
     }
 
     if (!productId) {
-      alert('Missing product information');
+      toast.error('Missing product information')
       router.push('/');
       return;
     }
@@ -77,7 +89,7 @@ function ChatContent() {
         setMessages((prev) => [...prev, assistantMessage]);
         setStreamingMessage('');
       } catch (error) {
-        console.error('Error sending message:', error);
+        toast.error('Error sending message:' + error);
         const errorMessage: ChatMessage = {
           role: 'assistant',
           content: 'Sorry, there was an error processing your request. Please try again.',
@@ -96,7 +108,7 @@ function ChatContent() {
     
     if (!textToSend || isLoading) return;
     if (!productId) {
-      alert('Missing product information');
+        toast.error('Missing product information');
       router.push('/');
       return;
     }
@@ -139,7 +151,7 @@ function ChatContent() {
       setMessages((prev) => [...prev, assistantMessage]);
       setStreamingMessage('');
     } catch (error) {
-      console.error('Error sending message:', error);
+       toast.error('Error sending message:' + error);
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: 'Sorry, there was an error processing your request. Please try again.',
@@ -152,25 +164,22 @@ function ChatContent() {
     }
   };
 
-  const handleClearHistory = async () => {
-    if (!confirm('Are you sure you want to clear the chat history?')) {
-      return;
-    }
-
+  const handleClearHistory = async () => {    
     try {
 
         if (!productId) {
-            alert('Missing product information');
+             toast.error('Missing product information');
             return;
         }
         await api.clearChatHistory(productId);
+        
+        setDeleteProductId(null);
         setMessages([]);
         setStreamingMessage('');
-        alert('Chat history cleared successfully');
+         toast.success('Chat history cleared successfully');
 
     } catch (error) {
-        console.error('Error clearing history:', error);
-      alert('Failed to clear chat history');
+        toast.error('Failed to clear chat history');
     }
   };
 
@@ -194,7 +203,7 @@ function ChatContent() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={handleClearHistory}
+              onClick={setDeleteProductId.bind(null, productId)}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
             >
               Clear History
@@ -285,11 +294,27 @@ function ChatContent() {
           </p>
         </div>
       </div>
+      {/* Delete Alert Dialog */}
+      <AlertDialog open={!!deleteProductId} onOpenChange={() => setDeleteProductId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently clear product chat histroy {deleteProductId}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleClearHistory}>Clear</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
 export default function ChatPage() {
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
