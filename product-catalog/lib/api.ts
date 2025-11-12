@@ -126,8 +126,7 @@ export const api = {
     onChunk: (chunk: string) => void
   ): Promise<void> => {
     try {
-      console.log('********************************************');
-      console.log('Sending chat message request:', chatRequest);
+      
       const response = await fetch(`${API_BASE_URL}/chat/message`, {
         method: 'POST',
         headers: {

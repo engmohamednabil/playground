@@ -166,12 +166,12 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
         />
       </div>
       
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Product Id
+                Product ID
               </th>
               <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
                 Product Name
@@ -190,29 +190,33 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={5} className="h-24 text-center">
-                  No results.
+                <td colSpan={5} className="h-28 text-center text-muted-foreground">
+                  No results found.
                 </td>
               </tr>
             ) : (
               filteredData.map((product) => (
-                <tr key={product.id} className="border-b hover:bg-muted/50">
+                <tr key={product.id} className="border-b odd:bg-muted/20 hover:bg-muted/40">
                   <td className="p-4 align-middle font-medium">{product.id}</td>
                   <td className="p-4 align-middle">{product.desc}</td>
                   <td className="p-4 align-middle">{product.brand}</td>
                   <td className="p-4 align-middle">
-                    {product.price.toFixed(0)} EUR
+                    <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+                      {product.price.toFixed(0)} EUR
+                    </span>
                   </td>
                   <td className="p-4 align-middle">
-                    <div className="flex gap-2">
-                      <Link href={`/chat?id=${product.id}&description=${encodeURIComponent(product.desc)}&brand=${encodeURIComponent(product.brand)}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-accent-600 text-black text-sm font-medium rounded hover:bg-blue-50 transition-colors"                    >
-                        🤖 Ask AI
-                      </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/chat?id=${product.id}&description=${encodeURIComponent(product.desc)}&brand=${encodeURIComponent(product.brand)}`}>
+                          🤖 Ask AI
+                        </Link>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEdit(product)}
+                        aria-label={`Edit ${product.desc}`}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -220,6 +224,7 @@ function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => onDelete(product.id)}
+                        aria-label={`Delete ${product.desc}`}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
@@ -303,17 +308,33 @@ export default function ProductCatalog() {
   const existingIds = products.map(p => p.id);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-20 text-muted-foreground">
+        <span className="mr-3 inline-block size-4 animate-spin rounded-full border-2 border-input border-r-transparent" />
+        Loading products...
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Product Catalog</h1>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+    <div className="p-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <div className="relative max-w-sm">
+            <Input
+              placeholder="Search products..."
+              value={''}
+              readOnly
+              className="invisible h-0 p-0 opacity-0"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Add Product
+          </Button>
+        </div>
       </div>
 
       <DataTable 

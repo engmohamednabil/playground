@@ -300,7 +300,7 @@ function ChatContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently clear product chat histroy {deleteProductId}. This action cannot be undone.
+              This will permanently clear product ( {description} by {brand} ) chat histroy. Alert: action cannot be undone!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
