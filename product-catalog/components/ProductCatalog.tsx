@@ -27,6 +27,22 @@ import { api } from '../lib/api';
 import { Product } from '../lib/types';
 import toast from "react-hot-toast";
 import Link from 'next/link';
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
 
 // Product Form Component
 interface ProductFormProps {
@@ -142,99 +158,183 @@ interface DataTableProps {
 
 function DataTable({ data, onEdit, onDelete }: DataTableProps) {
   const [globalFilter, setGlobalFilter] = useState('');
+  const [pageSize, setPageSize] = useState(10);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize });
 
-  // Filter data based on global search
-  const filteredData = data.filter(product => {
-    if (!globalFilter) return true;
-    const searchTerm = globalFilter.toLowerCase();
-    return (
-      product.id.toLowerCase().includes(searchTerm) ||
-      product.desc.toLowerCase().includes(searchTerm) ||
-      product.price.toString().includes(searchTerm) ||
-      product.brand.toLowerCase().includes(searchTerm)
-    );
+  const columns: ColumnDef<Product>[] = [
+    {
+      accessorKey: 'id',
+      header: 'Product ID',
+      cell: ({ row }: any) => (
+        <span className="font-medium">{row.original.id}</span>
+      ),
+    },
+    {
+      accessorKey: 'desc',
+      header: 'Product Name',
+      cell: ({ row }: any) => row.original.desc,
+    },
+    {
+      accessorKey: 'brand',
+      header: 'Brand',
+      cell: ({ row }: any) => row.original.brand,
+    },
+    {
+      accessorKey: 'price',
+      header: 'Price',
+      cell: ({ row }: any) => (
+        <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
+          {row.original.price.toFixed(0)} EUR
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }: any) => {
+        const product = row.original;
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/chat?id=${product.id}&description=${encodeURIComponent(product.desc)}&brand=${encodeURIComponent(product.brand)}`}>
+                🤖 Ask AI
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(product)}
+              aria-label={`Edit ${product.desc}`}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(product.id)}
+              aria-label={`Delete ${product.desc}`}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      globalFilter,
+      pagination,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    globalFilterFn: (row: any, _columnId: any, filterValue: any) => {
+      if (!filterValue) return true;
+      const v = String(filterValue).toLowerCase();
+      const p = row.original as Product;
+      return (
+        p.id.toLowerCase().includes(v) ||
+        p.desc.toLowerCase().includes(v) ||
+        String(p.price).includes(v) ||
+        p.brand.toLowerCase().includes(v)
+      );
+    },
   });
+
+  // When pageSize changes via select, update pagination and reset to first page
+  const handleChangePageSize = (value: number) => {
+    setPageSize(value);
+    setPagination((prev) => ({ ...prev, pageSize: value, pageIndex: 0 }));
+  };
 
   return (
     <div>
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between gap-2 py-4">
         <Input
           placeholder="Search Products"
           value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
+          onChange={(e) => table.setGlobalFilter(e.target.value)}
           className="max-w-sm"
         />
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground">Rows</label>
+          <select
+            className="h-9 rounded-md border bg-background px-2 text-sm"
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => handleChangePageSize(Number(e.target.value))}
+          >
+            {[5, 10, 20, 50].map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
       </div>
-      
+
       <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b bg-muted/50">
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Product ID
-              </th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Product Name
-              </th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Brand
-              </th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Price
-              </th>
-              <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="h-28 text-center text-muted-foreground">
-                  No results found.
-                </td>
-              </tr>
-            ) : (
-              filteredData.map((product) => (
-                <tr key={product.id} className="border-b odd:bg-muted/20 hover:bg-muted/40">
-                  <td className="p-4 align-middle font-medium">{product.id}</td>
-                  <td className="p-4 align-middle">{product.desc}</td>
-                  <td className="p-4 align-middle">{product.brand}</td>
-                  <td className="p-4 align-middle">
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
-                      {product.price.toFixed(0)} EUR
-                    </span>
-                  </td>
-                  <td className="p-4 align-middle">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/chat?id=${product.id}&description=${encodeURIComponent(product.desc)}&brand=${encodeURIComponent(product.brand)}`}>
-                          🤖 Ask AI
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(product)}
-                        aria-label={`Edit ${product.desc}`}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(product.id)}
-                        aria-label={`Delete ${product.desc}`}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup: any) => (
+              <TableRow key={headerGroup.id} className="bg-muted/50">
+                {headerGroup.headers.map((header: any) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row: any) => (
+                <TableRow key={row.id} className="odd:bg-muted/20 hover:bg-muted/40">
+                  {row.getVisibleCells().map((cell: any) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-28 text-center text-muted-foreground">
+                  No results found.
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <div className="text-sm text-muted-foreground">
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -319,16 +419,6 @@ export default function ProductCatalog() {
   return (
     <div className="p-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
-          <div className="relative max-w-sm">
-            <Input
-              placeholder="Search products..."
-              value={''}
-              readOnly
-              className="invisible h-0 p-0 opacity-0"
-            />
-          </div>
-        </div>
         <div className="flex items-center gap-2">
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-1.5 h-4 w-4" />
