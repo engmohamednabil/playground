@@ -1,6 +1,6 @@
 'use client';
 
-import ChatContent from '@/app/chat';
+import ChatContent from '@/components/chat';
 
 export default function ChatPageContent() {
   return (

@@ -14,7 +14,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../components/ui/alert-dialog';
+} from './ui/alert-dialog';
 
 function ChatContent() {
   const searchParams = useSearchParams();
