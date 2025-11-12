@@ -20,8 +20,6 @@ export interface ChatMessage {
 export interface ChatRequest {
   productId: string;
   message: string;
-  description?: string;
-  brand?: string;
 }
 
 export interface ChatResponse {

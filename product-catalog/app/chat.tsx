@@ -33,7 +33,7 @@ function ChatContent() {
       return;
     }
 
-    if (!productId || !description || !brand) {
+    if (!productId) {
       alert('Missing product information');
       router.push('/');
       return;
@@ -43,7 +43,7 @@ function ChatContent() {
     hasInitialMessageSentRef.current = true;
 
     // Send initial message to get product information
-    const initialMessage = `Tell me more about this product: ${description} by ${brand}`;
+    const initialMessage = `Tell me more about this product:`;
     
     // Call handleSendMessage directly without adding it to dependencies
     // The ref guard ensures this only runs once, even in Strict Mode
@@ -59,9 +59,7 @@ function ChatContent() {
         await api.sendChatMessage(
           {
             productId,
-            message: textToSend,
-            description,
-            brand,
+            message: textToSend
           },
           (chunk) => {
             fullResponse += chunk;
@@ -97,6 +95,11 @@ function ChatContent() {
     const textToSend = messageText || inputMessage.trim();
     
     if (!textToSend || isLoading) return;
+    if (!productId) {
+      alert('Missing product information');
+      router.push('/');
+      return;
+    }
 
     // Add user message to chat
     if (!isInitial) {
@@ -118,9 +121,7 @@ function ChatContent() {
       await api.sendChatMessage(
         {
           productId,
-          message: textToSend,
-          description,
-          brand,
+          message: textToSend
         },
         (chunk) => {
           fullResponse += chunk;
@@ -157,12 +158,18 @@ function ChatContent() {
     }
 
     try {
-      await api.clearChatHistory(productId);
-      setMessages([]);
-      setStreamingMessage('');
-      alert('Chat history cleared successfully');
+
+        if (!productId) {
+            alert('Missing product information');
+            return;
+        }
+        await api.clearChatHistory(productId);
+        setMessages([]);
+        setStreamingMessage('');
+        alert('Chat history cleared successfully');
+
     } catch (error) {
-      console.error('Error clearing history:', error);
+        console.error('Error clearing history:', error);
       alert('Failed to clear chat history');
     }
   };
