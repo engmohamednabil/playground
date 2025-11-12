@@ -13,6 +13,7 @@ function ChatContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasInitialMessageSentRef = useRef(false);
 
   const productId = searchParams.get('id') || '';
   const description = searchParams.get('description') || '';
@@ -27,16 +28,70 @@ function ChatContent() {
   }, [messages, streamingMessage]);
 
   useEffect(() => {
+    // Prevent double execution in React Strict Mode
+    if (hasInitialMessageSentRef.current) {
+      return;
+    }
+
     if (!productId || !description || !brand) {
       alert('Missing product information');
       router.push('/');
       return;
     }
 
+    // Mark as sent before calling to prevent race conditions
+    hasInitialMessageSentRef.current = true;
+
     // Send initial message to get product information
     const initialMessage = `Tell me more about this product: ${description} by ${brand}`;
-    handleSendMessage(initialMessage, true);
-  }, []);
+    
+    // Call handleSendMessage directly without adding it to dependencies
+    // The ref guard ensures this only runs once, even in Strict Mode
+    (async () => {
+      const textToSend = initialMessage;
+      
+      setIsLoading(true);
+      setStreamingMessage('');
+
+      try {
+        let fullResponse = '';
+
+        await api.sendChatMessage(
+          {
+            productId,
+            message: textToSend,
+            description,
+            brand,
+          },
+          (chunk) => {
+            fullResponse += chunk;
+            setStreamingMessage(fullResponse);
+          }
+        );
+
+        // Add assistant message to chat
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: fullResponse,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setStreamingMessage('');
+      } catch (error) {
+        console.error('Error sending message:', error);
+        const errorMessage: ChatMessage = {
+          role: 'assistant',
+          content: 'Sorry, there was an error processing your request. Please try again.',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        setStreamingMessage('');
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [productId, description, brand, router]);
 
   const handleSendMessage = async (messageText?: string, isInitial: boolean = false) => {
     const textToSend = messageText || inputMessage.trim();
